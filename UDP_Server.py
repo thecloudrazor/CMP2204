@@ -3,8 +3,6 @@ import os, threading, json
 import time as time
 from datetime import datetime, timedelta
 
-
-
 def load_user_data():
       with open('contacts.json', 'w') as CreatingFile:
             json.dump({"users": []}, CreatingFile)

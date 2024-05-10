@@ -7,28 +7,23 @@ from datetime import datetime, timedelta
 
 tcp_port = 6001
 current_time = datetime.now()
-try:
-    tcp_cli_sock = socket(AF_INET, SOCK_STREAM)
-    hostname = input('Please enter your IP address: ')
-    tcp_cli_sock.bind((hostname, tcp_port))
-    # tcp_server_sock.listen(15)
-except socket.error as err:
-    print(f"An error occurred: {err}")
 def receiver():
     while True:
         tcp_serv_sock = socket(AF_INET, SOCK_STREAM)
-        hostname = input('Please enter your IP address: ')
-        tcp_serv_sock.bind((hostname, tcp_port))
-        received_data, received_address = tcp_serv_sock.recvfrom(2048)
+        tcp_serv_sock.bind(('', tcp_port))
+        tcp_serv_sock.listen()
+        conn, addr = tcp_serv_sock.accept()
+        received_data, received_address = conn.recvfrom(2048)
         received_message = received_data.decode()
         received_msg_as_json = json.loads(received_message)
-        ip_address = received_address[0]
+        ip_address = addr[0]
 
         with open("contacts.json", "r") as ReadContactsInfo:
             contacts_data = json.load(ReadContactsInfo)
-        for user in contacts_data['IP Address']:
-            if user['IP Address'] == ip_address:
-                recvd_uname = user['username']
+        for user_iteration in contacts_data['users']:
+            if(ip_address in [user['IP Address'] for user in contacts_data['users']]):
+                recvd_uname = user_iteration['username']
+                print(f"Received data from {recvd_uname} at {ip_address}. Resolving...\n")
 
         if('key' in received_msg_as_json):
             key = received_msg_as_json['key']
@@ -47,6 +42,9 @@ def receiver():
         elif('unencrypted_message' in received_msg_as_json):
             unencrypted_message = received_msg_as_json['unencrypted_message']
             with open(f'chat_history_{recvd_uname}.txt', 'a') as outfile:
-                outfile.append(f"{current_time} | {recvd_uname}: {unencrypted_message}\n")
+                outfile.write(f"{current_time} | {recvd_uname}: {unencrypted_message}\n")
         else:
             print("Awaiting...")
+
+
+receiver()
