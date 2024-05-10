@@ -3,6 +3,8 @@ import os, threading, json
 import time as time
 from datetime import datetime, timedelta
 
+
+
 def load_user_data():
       with open('contacts.json', 'w') as CreatingFile:
             json.dump({"users": []}, CreatingFile)
@@ -16,7 +18,7 @@ def save_user_data(online_user_data):
 def listener(udp_socket, last_ping_time, online_user_data):
       while True:
             received_data, received_address = udp_socket.recvfrom(2048)
-            received_message = received_data.decode()
+            received_message = received_data.decode('utf-8')
             received_msg_as_json = json.loads(received_message)
             new_user = received_msg_as_json['username']
             timestamp = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
@@ -31,6 +33,8 @@ def listener(udp_socket, last_ping_time, online_user_data):
             else:
                   for user in online_user_data['users']:
                         if user['username'] == new_user:
+                              if (user['Status'] == 'Away'):
+                                    print(f"User {user['username']} is online again, and no longer away.")
                               user['Status'] = "Online"
                               user['Last Seen'] = timestamp
                               save_user_data(online_user_data)

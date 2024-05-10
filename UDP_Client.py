@@ -10,6 +10,8 @@ def service_announcer():
 
     username = input("Please enter your username to continue:")
     username_as_json = {"username":username}
+    with open('own_user_info.json', 'w') as LocalUserInfo:
+        LocalUserInfo.write(json.dumps(username_as_json))
 
     broadcast_addr = input("Now, enter the broadcast address of the network you're connected here: ")
     print("Broadcasting your username across the network...\n"
@@ -18,6 +20,7 @@ def service_announcer():
     while True:
         message = json.dumps(username_as_json).encode('utf-8')
         udpCliSock.sendto(message, server_address)
+
         time.sleep(8)
 
 service_announcer()
