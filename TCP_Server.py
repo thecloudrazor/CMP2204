@@ -28,47 +28,49 @@ def save_received_msg_to_history(sender_username, received_msg):
 
 def handle_client(client_socket):
     while True:
-        request = client_socket.recv(1024)
-        if not request:
-            break  # Client has disconnected
-        data = json.loads(request.decode())
-        sender_username = [user['username'] for user in read_contacts_data()['users'] if user['IP Address'] == client_socket.getpeername()[0]][0]
+        try:
+            request = client_socket.recv(1024)
+            if not request:
+                break  # Client has disconnected
+            # Rest of your code...
+            data = json.loads(request.decode())
+            sender_username = [user['username'] for user in read_contacts_data()['users'] if
+                               user['IP Address'] == client_socket.getpeername()[0]][0]
 
-        if 'key' in data:
-            # Generate Diffie-Hellman key
-            client_key = int(data['key'])
-            print(f"Received client's key: {client_key}")
-            server_key = (g ** n) % n
-            print(f"Generated server key: {server_key}")
-            shared_key = (client_key ** n) % n
-            print(f"Generated shared key: {shared_key}")
-            shared_key = str(shared_key).encode()  # Convert to bytes
-            shared_key = pad_or_truncate_key(shared_key)  # Pad or truncate to 8 bytes
-            print(f"Final key after padding or truncating: {shared_key.decode('utf-8')}")
+            if 'key' in data:
+                client_key = int(data['key'])
+                print(f"Received client's key: {client_key}")
+                server_key = (g ** n) % n
+                print(f"Generated server key: {server_key}")
+                shared_key = (client_key ** n) % n
+                print(f"Generated shared key: {shared_key}")
+                shared_key = str(shared_key).encode()
+                shared_key = pad_or_truncate_key(shared_key)
+                print(f"Final key after padding or truncating: {shared_key.decode('utf-8')}")
 
-            # Send server key to client
-            response = json.dumps({'key': server_key})
-            client_socket.send(response.encode())
-            print("Sent server key to client.")
+                # Send server key to client
+                response = json.dumps({'key': server_key})
+                client_socket.send(response.encode())
+                print("Sent server key to client.")
 
-        elif 'encrypted_message' in data:
-            # Decrypt message using pyDes
-            encrypted_message = base64.b64decode(data['encrypted_message'])  # Decode from base64
-            des = pyDes.des(shared_key, pyDes.CBC, "\0\0\0\0\0\0\0\0", pad=None, padmode=pyDes.PAD_PKCS5)
-            decrypted_message = des.decrypt(encrypted_message)
-            decrypted_message = decrypted_message.decode()  # Convert bytes to string
-            print(f"{datetime.datetime.now()} | {sender_username}: Decrypted message: {decrypted_message}")
-            save_received_msg_to_history(sender_username, decrypted_message)
+            elif 'encrypted_message' in data:
+                encrypted_message = base64.b64decode(data['encrypted_message'])
+                des = pyDes.des(shared_key, pyDes.CBC, "\0\0\0\0\0\0\0\0", pad=None, padmode=pyDes.PAD_PKCS5)
+                decrypted_message = des.decrypt(encrypted_message)
+                decrypted_message = decrypted_message.decode()
+                print(f"{datetime.datetime.now()} | {sender_username}: Decrypted message: {decrypted_message}")
+                save_received_msg_to_history(sender_username, decrypted_message)
 
-        elif 'unencrypted_message' in data:
-            # Directly print the message
-            print(f"{datetime.datetime.now()} | {sender_username} says: {data['unencrypted_message']}")
-            save_received_msg_to_history(sender_username, data['unencrypted_message'])
+            elif 'unencrypted_message' in data:
+                print(f"{datetime.datetime.now()} | {sender_username} says: {data['unencrypted_message']}")
+                save_received_msg_to_history(sender_username, data['unencrypted_message'])
+            else:
+                print("Unknown data received.")
+        except ConnectionResetError:
+            print(f"Client {client_socket.getpeername()[0]} has disconnected: forcibly closed the connection.")
+            break
 
-        else:
-            print("Unknown data received.")
-
-def server():
+def chat_responder():
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.bind(('', 6001))
     server_socket.listen(5)
@@ -83,5 +85,4 @@ def server():
         client_thread = threading.Thread(target=handle_client, args=(client_socket,))
         client_thread.start()
 
-if __name__ == "__main__":
-    server()
+chat_responder()
