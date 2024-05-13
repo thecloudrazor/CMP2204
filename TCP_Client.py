@@ -86,9 +86,6 @@ def chat_initiator():
                         except ConnectionRefusedError as e:
                             print("Connection has been refused!")
                             exit()
-                    else:
-                        print(f"The user you've specified is either offline, or that username has never existed.")
-                        exit()
 
                 security = input("Please specify your chat security preference (secure/unsecure): ").lower()
                 if security == 'unsecure':
