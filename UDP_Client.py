@@ -20,7 +20,6 @@ def service_announcer():
     while True:
         message = json.dumps(username_as_json).encode('utf-8')
         udpCliSock.sendto(message, server_address)
-
         time.sleep(8)
 
 service_announcer()

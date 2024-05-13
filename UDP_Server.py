@@ -1,7 +1,7 @@
 from socket import *
 import os, threading, json
 import time as time
-from datetime import datetime, timedelta
+from datetime import datetime
 
 def load_user_data():
       with open('contacts.json', 'w') as CreatingFile:
