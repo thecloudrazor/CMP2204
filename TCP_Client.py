@@ -16,11 +16,16 @@ def save_own_msg_to_history(target_destination, own_username, own_plaintext_msg)
 def chat_initiator():
     print("Welcome to the TCP Client!\nThis program is used for displaying available users, sending messages to them, or viewing chat history logs.\n"
           "Fetching your username from the 'own_user_info.json' file...\nIf you want to change your username, just delete the 'own_user_info.json' file.\n")
-    handler()
+    chat_initiator()
 
 def begin_announcer():
     print(f"Note that the received messages will be shown in the TCP Server. This is the client.\n"
           "The session is ready! Awaiting your messages...\n")
+
+def read_contact_data():
+    with open("contacts.json", "r") as ReadContactsInfo:
+        contacts_data = json.load(ReadContactsInfo)
+        return contacts_data
 
 def pad_or_truncate_key(key):
     # If key is less than 8 bytes, pad it with zeros
@@ -43,7 +48,7 @@ def handle_client(tcp_cli_sock):
         else:
             print("Unknown data received.")
 
-def handler():
+def chat_initiator():
     global shared_key  # Declare shared_key as global to modify it
     if os.path.exists("own_user_info.json"):
         with open("own_user_info.json", "r") as ReadOwnUserInfo:
@@ -57,10 +62,9 @@ def handler():
 
     while True:
         choice = input("Please choose an action (users/chat/history): ").lower()
-        with open("contacts.json", "r") as ReadContactsInfo:
-            contacts_data = json.load(ReadContactsInfo)
+        read_contact_data()
         if choice == 'users':
-            users = contacts_data['users']
+            users = read_contact_data()['users']
             print("All users (Activity within the last 15 minutes):\n")
             for user in users:
                 last_seen_time = datetime.strptime(user['Last Seen'], "%d/%m/%Y %H:%M:%S")
@@ -71,7 +75,8 @@ def handler():
         elif choice == 'chat':
             while True:
                 target_destination = input("Who do you want to chat with?: ")
-                for user in contacts_data['users']:
+                read_contact_data()
+                for user in read_contact_data()['users']:
                     last_seen_time = datetime.strptime(user['Last Seen'], "%d/%m/%Y %H:%M:%S")
                     if target_destination.lower() == user['username'].lower() and (
                             (current_time - last_seen_time) < timedelta(minutes=15)):
@@ -95,8 +100,6 @@ def handler():
                         plaintext_msg_as_json = {'unencrypted_message': own_plaintext_msg}
                         tcp_cli_sock.send(json.dumps(plaintext_msg_as_json).encode())
                         print(f"{current_time} | Plaintext message sent to {target_destination} at {target_ip}.\n")
-
-
 
                 elif security == 'secure':
                     print(f"Initiating secure chat, with {target_destination} at {target_ip}...\n")
@@ -140,7 +143,7 @@ def handler():
         else:
             print("Invalid input!\n")
 
-    client_thread = threading.Thread(target=handle_client, args=(tcp_cli_sock,))
+    client_thread = threading.Thread(target=handle_client, args=(tcp_cli_sock))
     client_thread.start()
 
 chat_initiator()

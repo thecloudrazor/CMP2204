@@ -70,7 +70,7 @@ def handle_client(client_socket):
 
 def server():
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_socket.bind(('192.168.1.70', 6001))
+    server_socket.bind(('', 6001))
     server_socket.listen(5)
 
     print("Listening on port 6001...")
