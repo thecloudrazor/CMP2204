@@ -7,7 +7,7 @@ tcp_port = 6001
 tcp_cli_sock = socket(AF_INET, SOCK_STREAM)
 divisor = 23
 prime = 5
-shared_key = None  # Define shared_key as a global variable
+shared_key = None
 
 def save_own_msg_to_history(target_destination, own_username, own_plaintext_msg):
     with open(f'chat_history_{target_destination}.txt', 'a', encoding='utf-8') as AppendChatHistoryFile:
@@ -37,7 +37,7 @@ def pad_or_truncate_key(key):
     return key
 
 def handle_client(tcp_cli_sock):
-    global shared_key  # Declare shared_key as global to access it
+    global shared_key
     while True:
         response = json.loads(tcp_cli_sock.recv(2048).decode())
         if 'encrypted_message' in response:
@@ -49,7 +49,7 @@ def handle_client(tcp_cli_sock):
             print("Unknown data received.")
 
 def chat_initiator():
-    global shared_key  # Declare shared_key as global to modify it
+    global shared_key
     if os.path.exists("own_user_info.json"):
         with open("own_user_info.json", "r") as ReadOwnUserInfo:
             own_data = json.load(ReadOwnUserInfo)
@@ -92,11 +92,15 @@ def chat_initiator():
                     print(f"Initiating plaintext unsecure chat, with {target_destination} at {target_ip}...\n")
                     begin_announcer()
                     while True:
-                        own_plaintext_msg = input(f"{own_username}: ")
-                        save_own_msg_to_history(target_destination, own_username, own_plaintext_msg)
-                        plaintext_msg_as_json = {'unencrypted_message': own_plaintext_msg}
-                        tcp_cli_sock.send(json.dumps(plaintext_msg_as_json).encode())
-                        print(f"{current_time} | Plaintext message sent to {target_destination} at {target_ip}.\n")
+                        try:
+                            own_plaintext_msg = input(f"{own_username}: ")
+                            save_own_msg_to_history(target_destination, own_username, own_plaintext_msg)
+                            plaintext_msg_as_json = {'unencrypted_message': own_plaintext_msg}
+                            tcp_cli_sock.send(json.dumps(plaintext_msg_as_json).encode())
+                            print(f"{current_time} | Plaintext message sent to {target_destination} at {target_ip}.\n")
+                        except ConnectionResetError as e:
+                            print("Connection has been terminated from the other side!")
+                            break
 
                 elif security == 'secure':
                     print(f"Initiating secure chat, with {target_destination} at {target_ip}...\n")

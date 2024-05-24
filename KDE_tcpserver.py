@@ -32,7 +32,6 @@ def handle_client(client_socket):
             request = client_socket.recv(1024)
             if not request:
                 break  # Client has disconnected
-            # Rest of your code...
             data = json.loads(request.decode())
             sender_username = [user['username'] for user in read_contacts_data()['users'] if
                                user['IP Address'] == client_socket.getpeername()[0]][0]

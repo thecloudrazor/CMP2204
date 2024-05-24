@@ -1,12 +1,17 @@
 # CMP2204
-Introduction to Computer Networks -- Term Project
+Introduction to Computer Networks -- Term Project, Spring 2024
+Demir Eroglu 2200678
+Emir Ismail Genc 2202780
+Kuzey Berk Yilmaz 2200014
 
 # P2P Chat Application
 This is a simple P2P chat application written in Python. It allows users to chat with each other in a secure or unsecure way. 
 
-It utilizes UDP for peer discovery and service announcement, and it utilizes TCP for both unsecure and secure chats (which use the pyDes library to encrypt messages with P2P exchanged keys using the Diffie-Hellman key exchange mechanism). 
+It utilizes UDP for peer discovery and service announcement. It works by parsing every single announcement into a file called contacts.json (created automatically if it doesn't exist) and both the TCP client and the server can (and do) access this file for other operations. 
 
-It also logs and saves the chat history with every user in different text files individually.
+The program utilizes TCP for both unsecure and secure chats (which use the pyDes library to encrypt messages with P2P exchanged keys using the Diffie-Hellman key exchange mechanism). If the user chooses "secure" chat (instead of "unsecure" where plaintext messages are exchanged), the user gets prompted for an input for generating keys. When the TCP server receives a key from the other user, it is used in the generation of a common, shared key for encrypting messages.
+
+The program also logs and saves the chat history with every user in different text files individually. It is important to note that all of the content is saved and held in plaintext, even if the chat is encrypted.
 
 ## Prerequisites
 - Python 3.x

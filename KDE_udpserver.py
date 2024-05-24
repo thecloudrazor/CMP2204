@@ -24,7 +24,10 @@ def listener(udp_socket, last_ping_time, online_user_data):
             last_ping_time[new_user] = datetime.strptime(timestamp, "%d/%m/%Y %H:%M:%S")
 
             if(new_user not in [user['username'] for user in online_user_data['users']]):
-                  new_entry = {"username": new_user, "IP Address": received_address[0], "Last Seen": timestamp, "Status": "Online"}
+                  new_entry = {"username": new_user,
+                               "IP Address": received_address[0],
+                               "Last Seen": timestamp,
+                               "Status": "Online"}
                   online_user_data['users'].append(new_entry)
                   save_user_data(online_user_data)
                   print(f"New user found! | Username: {new_user} | IP: {ip_address} | Timestamp: {timestamp}")
@@ -51,7 +54,7 @@ def peer_discovery():
       print("Welcome to the UDP Server!\nThis is used for listing active users in the network.\n---------------------\n"
             "Receiving status probes from other users...\n---------------------\n")
 
-      serverPort = 6000  # the UDP server's port. This will receive peer announcements
+      serverPort = 6000
       try:
             udpServSock = socket(AF_INET, SOCK_DGRAM)
             udpServSock.bind(('', serverPort))
